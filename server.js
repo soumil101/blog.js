@@ -19,9 +19,15 @@ app.engine(
             },
             ifCond: function (v1, v2, options) {
                 if (v1 === v2) {
-                    return options.fn(this);
+                    if (typeof options.fn === 'function') {
+                        return options.fn(this);
+                    }
+                } else {
+                    if (typeof options.inverse === 'function') {
+                        return options.inverse(this);
+                    }
                 }
-                return options.inverse(this);
+                return '';
             },
         },
     })
@@ -44,7 +50,7 @@ app.use((req, res, next) => {
     res.locals.copyrightYear = 2024;
     res.locals.postNeoType = 'Post';
     res.locals.loggedIn = req.session.loggedIn || false;
-    res.locals.userId = req.session.userId || '';
+    res.locals.user = getCurrentUser(req) || {};
     next();
 });
 
@@ -120,7 +126,8 @@ app.get('/logout', (req, res) => {
 
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     const postId = parseInt(req.params.id);
-    const postIndex = posts.findIndex(p => p.id === postId && p.username === getCurrentUser(req).username);
+    const user = getCurrentUser(req);
+    const postIndex = posts.findIndex(p => p.id === postId && p.username === user.username);
     if (postIndex !== -1) {
         posts.splice(postIndex, 1);
         res.redirect('/');
@@ -219,7 +226,8 @@ function renderProfile(req, res) {
 function updatePostLikes(req, res) {
     const postId = parseInt(req.params.id);
     const post = posts.find(p => p.id === postId);
-    if (post) {
+    const user = getCurrentUser(req);
+    if (post && post.username !== user.username) {
         post.likes += 1;
         res.redirect('/');
     } else {
