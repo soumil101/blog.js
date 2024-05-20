@@ -9,16 +9,14 @@
         <div class="post-status-bar">
             <span>{{timestamp}}</span>
             <span>{{likes}} ♥</span>
-            {{#ifCond username ../user.username}}
-                <button class="delete-button" data-id="{{id}}" onclick="handleDeleteClick(event)">Delete</button>
-            {{else}}
-                {{#unless (includes likedBy ../user.username)}}
-                    <button class="like-button" data-id="{{id}}" onclick="handleLikeClick(event)">Like</button>
-                {{/unless}}
-            {{/ifCond}}
+            <button class="delete-button" data-id="{{id}}" onclick="handleDeleteClick(event)">Delete</button>
+            {{#unless (includes likedBy ../user.username)}}
+                <button class="like-button" data-id="{{id}}" onclick="handleLikeClick(event)">Like</button>
+            {{/unless}}
         </div>        
     </div>
 </div>
+
 <script>
     function handleLikeClick(event) {
         const postId = event.target.getAttribute('data-id');
@@ -33,8 +31,7 @@
     }
 
     function handleDeleteClick(event) {
-        const buttonElement = event.target.closest('.delete-button');
-        const postId = buttonElement.getAttribute('data-id');
+        const postId = event.target.getAttribute('data-id');
         fetch(`/delete/${postId}`, { method: 'POST' })
             .then(response => {
                 if (response.ok) {
