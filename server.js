@@ -19,15 +19,15 @@ app.engine(
             },
             ifCond: function (v1, v2, options) {
                 if (v1 === v2) {
-                    if (typeof options.fn === 'function') {
-                        return options.fn(this);
-                    }
-                } else {
-                    if (typeof options.inverse === 'function') {
-                        return options.inverse(this);
-                    }
+                    return options.fn(this);
                 }
-                return '';
+                return options.inverse(this);
+            },
+            includes: function (array, value, options) {
+                if (array && array.includes(value)) {
+                    return options.fn ? options.fn(this) : true;
+                }
+                return options.inverse ? options.inverse(this) : false;
             },
         },
     })
@@ -149,8 +149,8 @@ app.listen(PORT, () => {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 let posts = [
-    { id: 1, title: 'Sample Post', content: 'This is a sample post.', username: 'SampleUser', timestamp: '2024-01-01 10:00', likes: 0 },
-    { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0 },
+    { id: 1, title: 'Sample Post', content: 'This is a sample post.', username: 'SampleUser', timestamp: '2024-01-01 10:00', likes: 0, likedBy: [] },
+    { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
 ];
 let users = [
     { id: 1, username: 'SampleUser', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
@@ -227,8 +227,9 @@ function updatePostLikes(req, res) {
     const postId = parseInt(req.params.id);
     const post = posts.find(p => p.id === postId);
     const user = getCurrentUser(req);
-    if (post && post.username !== user.username) {
+    if (post && post.username !== user.username && !post.likedBy.includes(user.username)) {
         post.likes += 1;
+        post.likedBy.push(user.username);
         res.redirect('/');
     } else {
         res.redirect('/error');
@@ -264,6 +265,7 @@ function addPost(title, content, user) {
         username: user.username,
         timestamp: new Date().toISOString(),
         likes: 0,
+        likedBy: [],
     };
     posts.push(newPost);
 }

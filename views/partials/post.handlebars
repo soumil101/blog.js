@@ -9,11 +9,13 @@
         <div class="post-status-bar">
             <span>{{timestamp}}</span>
             <span>{{likes}} ♥</span>
-            {{#if (ifCond username ../user.username)}}
+            {{#ifCond username ../user.username}}
                 <button class="delete-button" data-id="{{id}}" onclick="handleDeleteClick(event)">Delete</button>
             {{else}}
-                <button class="like-button" data-id="{{id}}" onclick="handleLikeClick(event)">Like</button>
-            {{/if}}
+                {{#unless (includes likedBy ../user.username)}}
+                    <button class="like-button" data-id="{{id}}" onclick="handleLikeClick(event)">Like</button>
+                {{/unless}}
+            {{/ifCond}}
         </div>        
     </div>
 </div>
