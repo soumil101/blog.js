@@ -1,29 +1,31 @@
 {{! Use the main layout }}
 {{!< main }}
 
-<div class="profile-container">
-    <div class="profile-avatar">
-        {{#if user.avatar_url}}
-            <img src="{{user.avatar_url}}" alt="{{user.username}}'s avatar">
-        {{else}}
-            <img src="/avatar/{{user.username}}" alt="{{user.username}}'s avatar">
-        {{/if}}
+<div class="profile-big">
+    <div class="profile-container">
+        <div class="profile-avatar">
+            {{#if user.avatar_url}}
+                <img src="{{user.avatar_url}}" alt="{{user.username}}'s avatar">
+            {{else}}
+                <img src="/avatar/{{user.username}}" alt="{{user.username}}'s avatar">
+            {{/if}}
+        </div>
+        <section class="profile-info">
+            <h2>{{user.username}}</h2>
+            <p>Member since: {{user.memberSince}}</p>
+        </section>
     </div>
-    <section class="profile-info">
-        <h2>{{user.username}}</h2>
-        <p>Member since: {{user.memberSince}}</p>
+
+    <section class="user-posts">
+        <h2>Your Posts</h2>
+        {{#if posts.length}}
+            <ul>
+                {{#each posts}}
+                    {{> post this user=../user}}
+                {{/each}}
+            </ul>
+        {{else}}
+            <p>You have not posted yet.</p>
+        {{/if}}
     </section>
 </div>
-
-<section class="user-posts">
-    <h2>Your Posts</h2>
-    {{#if posts.length}}
-        <ul>
-            {{#each posts}}
-                {{> post this user=../user}}
-            {{/each}}
-        </ul>
-    {{else}}
-        <p>You have not posted yet.</p>
-    {{/if}}
-</section>

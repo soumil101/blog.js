@@ -288,30 +288,58 @@ form button:hover {
 }
 
 /* Profile Page */
-.profile-container {
+.profile-header {
     display: flex;
-    gap: 20px;
     align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
-.profile-avatar img {
-    height: 100px;
-    width: 100px;
+.profile-avatar-large {
+    flex: 0 0 150px;
+    height: 150px;
+    width: 150px;
     border-radius: 50%;
     border: 2px solid #ced4da;
+    margin-right: 20px;
+}
+
+.profile-avatar-large img {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
 }
 
 .profile-info {
     flex: 1;
+    justify-content: center;
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .profile-info h2 {
     margin: 0;
+    font-size: 1.8em;
     color: #333;
+    margin-bottom: 10px;
 }
 
 .profile-info p {
+    margin: 5px 0;
     color: #495057;
+}
+
+.profile-big {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 /* Footer Styles */
@@ -322,4 +350,12 @@ footer {
     color: #fff;
     width: 100%;
     margin-top: auto; /* Push footer to the bottom */
+}
+
+#or-space { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10vh;
+    margin-bottom: 10vh;
 }

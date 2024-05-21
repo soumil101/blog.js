@@ -176,6 +176,8 @@ let users = [
     { id: 4, username: 'EcoWarrior', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
 ];
 
+
+
 function findUserByUsername(username) {
     return users.find(user => user.username === username);
 }
