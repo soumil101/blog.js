@@ -179,23 +179,17 @@ form button:hover {
 
 .posts-list li {
     list-style: none;
-    padding: 15px;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
 }
 
 .post {
     display: flex;
     gap: 15px;
     padding: 15px;
+    margin: 15px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.post:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .post-avatar img {
