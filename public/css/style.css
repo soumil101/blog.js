@@ -1,4 +1,241 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
 a {
-    color: #a74b4b;
     text-decoration: none;
+    color: #333;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Header Styles */
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-logo {
+    height: 50px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo h1 {
+    margin-left: 10px;
+    font-size: 1.5em;
+}
+
+nav ul {
+    display: flex;
+    gap: 20px;
+}
+
+nav ul li {
+    list-style: none;
+}
+
+nav ul li a {
+    color: #fff;
+    padding: 5px 10px;
+}
+
+nav ul li a:hover {
+    background-color: #575757;
+    border-radius: 5px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.header-avatar {
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+/* Content Container */
+.content-container, .profile-container, .login-register {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+form label {
+    font-weight: bold;
+}
+
+form input[type="text"], form textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+form button {
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #575757;
+}
+
+/* Emoji Panel */
+.emoji-panel {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+}
+
+#emoji-grid span {
+    font-size: 1.5em;
+    margin: 5px;
+    display: inline-block;
+}
+
+#emoji-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.emoji-button {
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+/* Post Styles */
+.posts-list ul {
+    padding: 0;
+}
+
+.posts-list li {
+    list-style: none;
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.post {
+    display: flex;
+    gap: 15px;
+}
+
+.post-avatar img {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
+.post-content {
+    flex: 1;
+}
+
+.post h2 {
+    margin: 0;
+}
+
+.post-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-status-bar button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.post-status-bar button:hover {
+    color: #575757;
+}
+
+/* Profile Page */
+.profile-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.profile-avatar img {
+    height: 100px;
+    width: 100px;
+    border-radius: 50%;
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #333;
+    color: #fff;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.emoji-panel {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+}
+
+#emoji-grid span {
+    font-size: 1.5em;
+    margin: 5px;
+    display: inline-block;
+}
+
+#emoji-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.emoji-button {
+    font-size: 1.5em;
+    cursor: pointer;
 }
