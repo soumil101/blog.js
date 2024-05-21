@@ -101,7 +101,21 @@ app.post('/posts', (req, res) => {
 });
 
 app.post('/like/:id', (req, res) => {
-    updatePostLikes(req, res);
+    const postId = parseInt(req.params.id);
+    const post = posts.find(p => p.id === postId);
+    const user = getCurrentUser(req);
+    if (post && user) {
+        if (post.likedBy.includes(user.username)) {
+            post.likes -= 1;
+            post.likedBy = post.likedBy.filter(username => username !== user.username);
+        } else {
+            post.likes += 1;
+            post.likedBy.push(user.username);
+        }
+        res.json({ liked: post.likedBy.includes(user.username), likes: post.likes });
+    } else {
+        res.status(400).json({ error: 'Unable to like/unlike post' });
+    }
 });
 
 app.get('/profile', isAuthenticated, (req, res) => {
@@ -154,6 +168,7 @@ let posts = [
     { id: 3, title: 'Top 5 Gadgets to Watch Out for in 2024', content: 'Tech enthusiasts, here’s my list of the top 5 gadgets to look out for in 2024. Let me know your thoughts!', username: 'TechSage', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
     { id: 4, title: 'Sustainable Living: Easy Swaps You Can Make Today', content: 'Making the shift to sustainable living is simpler than it seems. Sharing some easy swaps to get you started.', username: 'EcoWarrior', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
 ];
+
 let users = [
     { id: 1, username: 'TravelGuru', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
     { id: 2, username: 'FoodieFanatic', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
@@ -231,7 +246,7 @@ function updatePostLikes(req, res) {
     const postId = parseInt(req.params.id);
     const post = posts.find(p => p.id === postId);
     const user = getCurrentUser(req);
-    if (post && user) {
+    if (post && user && post.username !== user.username) {
         if (post.likedBy.includes(user.username)) {
             post.likes -= 1;
             post.likedBy = post.likedBy.filter(username => username !== user.username);
@@ -239,9 +254,9 @@ function updatePostLikes(req, res) {
             post.likes += 1;
             post.likedBy.push(user.username);
         }
-        res.redirect('/');
+        res.json({ liked: post.likedBy.includes(user.username), likes: post.likes });
     } else {
-        res.redirect('/error');
+        res.status(400).json({ error: 'Unable to like/unlike post' });
     }
 }
 
@@ -263,10 +278,7 @@ function getCurrentUser(req) {
 }
 
 function getPosts() {
-    return posts.map(post => ({
-        ...post,
-        avatar_url: findUserByUsername(post.username).avatar_url
-    })).reverse();
+    return posts.slice().reverse();
 }
 
 function addPost(title, content, user) {
@@ -278,7 +290,6 @@ function addPost(title, content, user) {
         timestamp: new Date().toISOString(),
         likes: 0,
         likedBy: [],
-        avatar_url: user.avatar_url,
     };
     posts.push(newPost);
 }

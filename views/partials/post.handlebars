@@ -12,24 +12,29 @@
         <p>{{content}}</p>
         <p>Posted by <strong>{{username}}</strong> on <em>{{timestamp}}</em></p>
         <div class="post-status-bar">
-            <span>Likes: {{likes}}</span>
             {{#ifCond username user.username}}
-                <!-- User cannot like their own post, so no like button displayed -->
+                <button data-id="{{id}}" class="like-button">
+                    <i class="fas fa-heart"></i>
+                    <span class="likes-count">{{likes}}</span>
+                </button>
             {{else}}
                 <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
-                    {{#if (includes likedBy user.username)}}Unlike{{else}}Like{{/if}}
+                    <i class="fas fa-heart"></i>
+                    <span class="likes-count">{{likes}}</span>
                 </button>
             {{/ifCond}}
             {{#ifCond username user.username}}
-                <button data-id="{{id}}" class="delete-button" onclick="handleDeleteClick(event)"><i class="fas fa-trash-alt"></i></button>
+                <button data-id="{{id}}" class="delete-button" onclick="handleDeleteClick(event)">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             {{/ifCond}}
-        </div>        
+        </div>
     </div>
 </div>
 
 <script>
     async function handleLikeClick(event) {
-        const postId = event.target.getAttribute('data-id');
+        const postId = event.target.closest('.like-button').getAttribute('data-id');
 
         try {
             const response = await fetch(`/like/${postId}`, {
@@ -40,7 +45,11 @@
             });
 
             if (response.ok) {
-                window.location.reload();
+                const result = await response.json();
+                const likeButton = event.target.closest('.like-button');
+                const likesCount = likeButton.querySelector('.likes-count');
+
+                likesCount.textContent = result.likes;
             } else {
                 console.error('Failed to like/unlike post');
             }
@@ -51,7 +60,7 @@
 
     async function handleDeleteClick(event) {
         const buttonElement = event.target.closest('.delete-button');
-        const postId = buttonElement.getAttribute('data-id');        
+        const postId = buttonElement.getAttribute('data-id');
 
         try {
             const response = await fetch(`/delete/${postId}`, {
