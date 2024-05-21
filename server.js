@@ -227,9 +227,14 @@ function updatePostLikes(req, res) {
     const postId = parseInt(req.params.id);
     const post = posts.find(p => p.id === postId);
     const user = getCurrentUser(req);
-    if (post && post.username !== user.username && !post.likedBy.includes(user.username)) {
-        post.likes += 1;
-        post.likedBy.push(user.username);
+    if (post && user) {
+        if (post.likedBy.includes(user.username)) {
+            post.likes -= 1;
+            post.likedBy = post.likedBy.filter(username => username !== user.username);
+        } else {
+            post.likes += 1;
+            post.likedBy.push(user.username);
+        }
         res.redirect('/');
     } else {
         res.redirect('/error');
@@ -254,7 +259,10 @@ function getCurrentUser(req) {
 }
 
 function getPosts() {
-    return posts.slice().reverse();
+    return posts.map(post => ({
+        ...post,
+        avatar_url: findUserByUsername(post.username).avatar_url
+    })).reverse();
 }
 
 function addPost(title, content, user) {
@@ -266,6 +274,7 @@ function addPost(title, content, user) {
         timestamp: new Date().toISOString(),
         likes: 0,
         likedBy: [],
+        avatar_url: user.avatar_url,
     };
     posts.push(newPost);
 }
@@ -274,9 +283,7 @@ function generateAvatar(letter, width = 100, height = 100) {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
-    // Choose a random background color
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#F333FF'];
-    const backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    const backgroundColor = '#F333FF';
 
     // Draw background
     ctx.fillStyle = backgroundColor;

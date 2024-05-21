@@ -1,44 +1,69 @@
 {{! Partial for a single post }}
 <div class="post">
     <div class="post-avatar">
-        <img src="/avatar/{{username}}" alt="{{username}}'s Avatar">
+        {{#if avatar_url}}
+            <img src="{{avatar_url}}" alt="{{username}}'s avatar">
+        {{else}}
+            <img src="/avatar/{{username}}" alt="{{username}}'s avatar">
+        {{/if}}
     </div>
     <div class="post-content preserve-newlines">
-        <h3>{{title}}</h3>
+        <h2>{{title}}</h2>
         <p>{{content}}</p>
         <p>Posted by {{username}} on {{timestamp}}</p>
         <div class="post-status-bar">
-            <span>{{likes}} ♥</span>
-            <button class="delete-button" data-id="{{id}}" onclick="handleDeleteClick(event)">Delete</button>
-            {{#unless (includes likedBy ../user.username)}}
-                <button class="like-button" data-id="{{id}}" onclick="handleLikeClick(event)">Like</button>
-            {{/unless}}
+            <span>Likes: {{likes}}</span>
+            <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
+                {{#if (includes likedBy ../user.username)}}Unlike{{else}}Like{{/if}}
+            </button>
+            {{#ifCond username user.username}}
+                <button data-id="{{id}}" class="delete-button" onclick="handleDeleteClick(event)"><i class="fas fa-trash-alt"></i></button>
+            {{/ifCond}}
         </div>        
     </div>
 </div>
 
 <script>
-    function handleLikeClick(event) {
+    async function handleLikeClick(event) {
         const postId = event.target.getAttribute('data-id');
-        fetch(`/like/${postId}`, { method: 'POST' })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    console.error('Failed to like the post.');
+
+        try {
+            const response = await fetch(`/like/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
             });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to like/unlike post');
+            }
+        } catch (error) {
+            console.error('Error liking/unliking post:', error);
+        }
     }
 
-    function handleDeleteClick(event) {
-        const postId = event.target.getAttribute('data-id');
-        fetch(`/delete/${postId}`, { method: 'POST' })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    console.error('Failed to delete the post.');
+    async function handleDeleteClick(event) {
+        const buttonElement = event.target.closest('.delete-button');
+        const postId = buttonElement.getAttribute('data-id');        
+
+        try {
+            const response = await fetch(`/delete/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
             });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to delete post');
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
     }
 </script>

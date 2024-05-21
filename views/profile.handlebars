@@ -3,7 +3,11 @@
 
 <div class="profile-container">
     <div class="profile-avatar">
-        <img src="/avatar/{{user.username}}" alt="{{user.username}}'s Avatar">
+        {{#if user.avatar_url}}
+            <img src="{{user.avatar_url}}" alt="{{user.username}}'s avatar">
+        {{else}}
+            <img src="/avatar/{{user.username}}" alt="{{user.username}}'s avatar">
+        {{/if}}
     </div>
     <section class="profile-info">
         <h2>{{user.username}}</h2>
@@ -16,7 +20,7 @@
     {{#if posts.length}}
         <ul>
             {{#each posts}}
-                {{> post this}}
+                {{> post this user=../user}}
             {{/each}}
         </ul>
     {{else}}
