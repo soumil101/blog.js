@@ -3,7 +3,8 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
+    background-color: #f0f4f8;
+    color: #333;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -14,6 +15,10 @@ a {
     color: #333;
 }
 
+a:hover {
+    text-decoration: underline;
+}
+
 ul {
     list-style-type: none;
     padding: 0;
@@ -21,9 +26,9 @@ ul {
 
 /* Header Styles */
 header {
-    background-color: #333;
+    background-color: #444;
     color: #fff;
-    padding: 10px 0;
+    padding: 20px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -31,6 +36,7 @@ header {
 
 .header-logo {
     height: 50px;
+    margin-left: 20px;
 }
 
 .logo {
@@ -39,13 +45,15 @@ header {
 }
 
 .logo h1 {
-    margin-left: 10px;
+    margin-left: 20px;
     font-size: 1.5em;
+    color: #fff;
 }
 
 nav ul {
     display: flex;
     gap: 20px;
+    margin-right: 20px;
 }
 
 nav ul li {
@@ -70,7 +78,8 @@ nav ul li a:hover {
 .header-avatar {
     height: 40px;
     border-radius: 50%;
-    margin-left: 10px;
+    margin-left: 20px;
+    border: 2px solid #fff;
 }
 
 /* Main Container */
@@ -88,7 +97,7 @@ main {
     width: 100%;
     margin: 20px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -102,17 +111,18 @@ form {
 
 form label {
     font-weight: bold;
+    color: #333;
 }
 
 form input[type="text"], form textarea {
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #ced4da;
     border-radius: 5px;
 }
 
 form button {
     padding: 10px;
-    background-color: #333;
+    background-color: #444;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -135,11 +145,20 @@ form button:hover {
     font-size: 1.5em;
     margin: 5px;
     display: inline-block;
+    cursor: pointer;
+}
+
+#emoji-grid span:hover {
+    background-color: #e9ecef;
+    border-radius: 5px;
 }
 
 #emoji-container {
     max-height: 200px;
     overflow-y: auto;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
 }
 
 .form-actions {
@@ -167,12 +186,23 @@ form button:hover {
 .post {
     display: flex;
     gap: 15px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .post-avatar img {
     height: 50px;
     width: 50px;
     border-radius: 50%;
+    border: 2px solid #ced4da;
 }
 
 .post-content {
@@ -181,12 +211,21 @@ form button:hover {
 
 .post h2 {
     margin: 0;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.post p {
+    margin: 10px 0;
+    color: #495057;
+    line-height: 1.6;
 }
 
 .post-status-bar {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-top: 10px;
 }
 
 .post-status-bar button {
@@ -194,10 +233,29 @@ form button:hover {
     border: none;
     cursor: pointer;
     font-size: 1.2em;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
 }
 
 .post-status-bar button:hover {
-    color: #575757;
+    background-color: #e9ecef;
+}
+
+.post-status-bar button i {
+    font-size: 1em;
+}
+
+.post-status-bar button.like-button {
+    color: #28a745;
+}
+
+.post-status-bar button.delete-button {
+    color: #dc3545;
 }
 
 /* Profile Page */
@@ -211,13 +269,27 @@ form button:hover {
     height: 100px;
     width: 100px;
     border-radius: 50%;
+    border: 2px solid #ced4da;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-info h2 {
+    margin: 0;
+    color: #333;
+}
+
+.profile-info p {
+    color: #495057;
 }
 
 /* Footer Styles */
 footer {
     text-align: center;
     padding: 10px 0;
-    background-color: #333;
+    background-color: #444;
     color: #fff;
     width: 100%;
     position: relative;
