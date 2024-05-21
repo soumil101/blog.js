@@ -13,9 +13,13 @@
         <p>Posted by {{username}} on {{timestamp}}</p>
         <div class="post-status-bar">
             <span>Likes: {{likes}}</span>
-            <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
-                {{#if (includes likedBy ../user.username)}}Unlike{{else}}Like{{/if}}
-            </button>
+            {{#ifCond username user.username}}
+                <!-- User cannot like their own post, so no like button displayed -->
+            {{else}}
+                <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
+                    {{#if (includes likedBy user.username)}}Unlike{{else}}Like{{/if}}
+                </button>
+            {{/ifCond}}
             {{#ifCond username user.username}}
                 <button data-id="{{id}}" class="delete-button" onclick="handleDeleteClick(event)"><i class="fas fa-trash-alt"></i></button>
             {{/ifCond}}
