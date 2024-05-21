@@ -6,8 +6,8 @@
     <div class="post-content preserve-newlines">
         <h3>{{title}}</h3>
         <p>{{content}}</p>
+        <p>Posted by {{username}} on {{timestamp}}</p>
         <div class="post-status-bar">
-            <span>{{timestamp}}</span>
             <span>{{likes}} ♥</span>
             <button class="delete-button" data-id="{{id}}" onclick="handleDeleteClick(event)">Delete</button>
             {{#unless (includes likedBy ../user.username)}}
