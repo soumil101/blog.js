@@ -3,6 +3,8 @@
     "canvas": "^2.11.2",
     "express": "^4.19.2",
     "express-handlebars": "^7.1.2",
-    "express-session": "^1.18.0"
+    "express-session": "^1.18.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   }
 }

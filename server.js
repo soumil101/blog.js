@@ -1,6 +1,8 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
+const sqlite = require('sqlite');
+const sqlite3 = require('sqlite3');
 const { createCanvas } = require('canvas');
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,6 +11,14 @@ const { createCanvas } = require('canvas');
 
 const app = express();
 const PORT = 3000;
+
+const dbFileName = 'microblog.db';
+let db;
+
+async function initializeDB() {
+    db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+    console.log('Database connected.');
+}
 
 app.engine(
     'handlebars',
@@ -29,6 +39,14 @@ app.engine(
                 }
                 return options.inverse ? options.inverse(this) : false;
             },
+            formatTimestamp: timestamp => {
+                const date = new Date(timestamp);
+                const options = {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                };
+                return date.toLocaleString('en-US', options);
+            }
         },
     })
 );
@@ -46,7 +64,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-    res.locals.appName = 'blog.JS';
+    res.locals.appName = 'MicroBlog';
     res.locals.copyrightYear = 2024;
     res.locals.postNeoType = 'Post';
     res.locals.loggedIn = req.session.loggedIn || false;
@@ -62,9 +80,9 @@ app.use(express.json());
 // Routes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-app.get('/', (req, res) => {
-    const posts = getPosts();
-    const user = getCurrentUser(req) || {};
+app.get('/', async (req, res) => {
+    const posts = await getPosts();
+    const user = await getCurrentUser(req) || {};
     res.render('home', { posts, user });
 });
 
@@ -80,8 +98,8 @@ app.get('/error', (req, res) => {
     res.render('error');
 });
 
-app.get('/post/:id', (req, res) => {
-    const post = posts.find(p => p.id === parseInt(req.params.id));
+app.get('/post/:id', async (req, res) => {
+    const post = await db.get('SELECT * FROM posts WHERE id = ?', [req.params.id]);
     if (post) {
         res.render('post', { post });
     } else {
@@ -89,61 +107,47 @@ app.get('/post/:id', (req, res) => {
     }
 });
 
-app.post('/posts', (req, res) => {
+app.post('/posts', async (req, res) => {
     const { title, content } = req.body;
-    const user = getCurrentUser(req);
+    const user = await getCurrentUser(req);
     if (user) {
-        addPost(title, content, user);
+        await addPost(title, content, user);
         res.redirect('/');
     } else {
         res.redirect('/login');
     }
 });
 
-app.post('/like/:id', (req, res) => {
-    const postId = parseInt(req.params.id);
-    const post = posts.find(p => p.id === postId);
-    const user = getCurrentUser(req);
-    if (post && user) {
-        if (post.likedBy.includes(user.username)) {
-            post.likes -= 1;
-            post.likedBy = post.likedBy.filter(username => username !== user.username);
-        } else {
-            post.likes += 1;
-            post.likedBy.push(user.username);
-        }
-        res.json({ liked: post.likedBy.includes(user.username), likes: post.likes });
-    } else {
-        res.status(400).json({ error: 'Unable to like/unlike post' });
-    }
+app.post('/like/:id', async (req, res) => {
+    await updatePostLikes(req, res);
 });
 
-app.get('/profile', isAuthenticated, (req, res) => {
-    renderProfile(req, res);
+app.get('/profile', isAuthenticated, async (req, res) => {
+    await renderProfile(req, res);
 });
 
 app.get('/avatar/:username', (req, res) => {
     handleAvatar(req, res);
 });
 
-app.post('/register', (req, res) => {
-    registerUser(req, res);
+app.post('/register', async (req, res) => {
+    await registerUser(req, res);
 });
 
-app.post('/login', (req, res) => {
-    loginUser(req, res);
+app.post('/login', async (req, res) => {
+    await loginUser(req, res);
 });
 
 app.get('/logout', (req, res) => {
     logoutUser(req, res);
 });
 
-app.post('/delete/:id', isAuthenticated, (req, res) => {
+app.post('/delete/:id', isAuthenticated, async (req, res) => {
     const postId = parseInt(req.params.id);
-    const user = getCurrentUser(req);
-    const postIndex = posts.findIndex(p => p.id === postId && p.username === user.username);
-    if (postIndex !== -1) {
-        posts.splice(postIndex, 1);
+    const user = await getCurrentUser(req);
+    const post = await db.get('SELECT * FROM posts WHERE id = ? AND username = ?', [postId, user.username]);
+    if (post) {
+        await db.run('DELETE FROM posts WHERE id = ?', [postId]);
         res.redirect('/');
     } else {
         res.redirect('/error');
@@ -154,7 +158,8 @@ app.post('/delete/:id', isAuthenticated, (req, res) => {
 // Server Activation
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    await initializeDB();
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
@@ -162,104 +167,51 @@ app.listen(PORT, () => {
 // Support Functions and Variables
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-let posts = [
-    { id: 1, title: 'Europe!', content: 'Just got back from an incredible trip through Europe. Visited some lesser-known spots that are truly breathtaking!.', username: 'TravelGuru', timestamp: '2024-01-01 10:00', likes: 0, likedBy: [] },
-    { id: 2, title: 'The Ultimate Guide to Homemade Pasta', content: 'Learned how to make pasta from scratch, and it’s easier than you think. Sharing my favorite recipes and tips.', username: 'FoodieFanatic', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
-    { id: 3, title: 'Top 5 Gadgets to Watch Out for in 2024', content: 'Tech enthusiasts, here’s my list of the top 5 gadgets to look out for in 2024. Let me know your thoughts!', username: 'TechSage', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
-    { id: 4, title: 'Sustainable Living: Easy Swaps You Can Make Today', content: 'Making the shift to sustainable living is simpler than it seems. Sharing some easy swaps to get you started.', username: 'EcoWarrior', timestamp: '2024-01-02 12:00', likes: 0, likedBy: [] },
-];
-
-let users = [
-    { id: 1, username: 'TravelGuru', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
-    { id: 2, username: 'FoodieFanatic', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
-    { id: 3, username: 'TechSage', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
-    { id: 4, username: 'EcoWarrior', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
-];
-
-
-
-function findUserByUsername(username) {
-    return users.find(user => user.username === username);
+async function getCurrentUser(req) {
+    if (!req.session.userId) return null;
+    return await db.get('SELECT * FROM users WHERE id = ?', [req.session.userId]);
 }
 
-function findUserById(userId) {
-    return users.find(user => user.id === userId);
+async function getPosts() {
+    return await db.all('SELECT * FROM posts ORDER BY timestamp DESC');
 }
 
-function addUser(username) {
-    const user = {
-        id: users.length + 1,
-        username: username,
-        avatar_url: undefined,
-        memberSince: new Date().toISOString(),
-    };
-    users.push(user);
-    return user;
+async function addPost(title, content, user) {
+    await db.run(
+        'INSERT INTO posts (title, content, username, timestamp, likes) VALUES (?, ?, ?, ?, ?)',
+        [title, content, user.username, new Date().toISOString(), 0]
+    );
 }
 
-function isAuthenticated(req, res, next) {
-    if (req.session.userId) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
-}
-
-function registerUser(req, res) {
-    const { username } = req.body;
-    if (findUserByUsername(username)) {
-        res.redirect('/register?error=Username%20already%20taken');
-    } else {
-        const user = addUser(username);
-        req.session.userId = user.id;
-        req.session.loggedIn = true;
-        res.redirect('/');
-    }
-}
-
-function loginUser(req, res) {
-    const { username } = req.body;
-    const user = findUserByUsername(username);
-    if (user) {
-        req.session.userId = user.id;
-        req.session.loggedIn = true;
-        res.redirect('/');
-    } else {
-        res.redirect('/login?error=Invalid%20username');
-    }
-}
-
-function logoutUser(req, res) {
-    req.session.destroy(err => {
-        if (err) {
-            return res.redirect('/error');
-        }
-        res.redirect('/');
-    });
-}
-
-function renderProfile(req, res) {
-    const user = getCurrentUser(req);
-    const userPosts = posts.filter(post => post.username === user.username);
-    res.render('profile', { user, posts: userPosts });
-}
-
-function updatePostLikes(req, res) {
+async function updatePostLikes(req, res) {
     const postId = parseInt(req.params.id);
-    const post = posts.find(p => p.id === postId);
-    const user = getCurrentUser(req);
+    const user = await getCurrentUser(req);
+    const post = await db.get('SELECT * FROM posts WHERE id = ?', [postId]);
     if (post && user && post.username !== user.username) {
-        if (post.likedBy.includes(user.username)) {
-            post.likes -= 1;
-            post.likedBy = post.likedBy.filter(username => username !== user.username);
+        const likedBy = JSON.parse(post.likedBy || '[]');
+        if (likedBy.includes(user.username)) {
+            likedBy.splice(likedBy.indexOf(user.username), 1);
+            await db.run('UPDATE posts SET likes = likes - 1, likedBy = ? WHERE id = ?', [
+                JSON.stringify(likedBy),
+                postId
+            ]);
         } else {
-            post.likes += 1;
-            post.likedBy.push(user.username);
+            likedBy.push(user.username);
+            await db.run('UPDATE posts SET likes = likes + 1, likedBy = ? WHERE id = ?', [
+                JSON.stringify(likedBy),
+                postId
+            ]);
         }
-        res.json({ liked: post.likedBy.includes(user.username), likes: post.likes });
+        res.redirect('/');
     } else {
-        res.status(400).json({ error: 'Unable to like/unlike post' });
+        res.redirect('/error');
     }
+}
+
+async function renderProfile(req, res) {
+    const user = await getCurrentUser(req);
+    const userPosts = await db.all('SELECT * FROM posts WHERE username = ? ORDER BY timestamp DESC', [user.username]);
+    res.render('profile', { user, posts: userPosts });
 }
 
 function handleAvatar(req, res) {
@@ -279,21 +231,11 @@ function getCurrentUser(req) {
     return findUserById(req.session.userId);
 }
 
-function getPosts() {
-    return posts.slice().reverse();
-}
-
-function addPost(title, content, user) {
-    const newPost = {
-        id: posts.length + 1,
-        title: title,
-        content: content,
-        username: user.username,
-        timestamp: new Date().toISOString(),
-        likes: 0,
-        likedBy: [],
-    };
-    posts.push(newPost);
+async function addPost(title, content, user) {
+    await db.run(
+        'INSERT INTO posts (title, content, username, timestamp, likes) VALUES (?, ?, ?, ?, ?)',
+        [title, content, user.username, new Date().toISOString(), 0]
+    );
 }
 
 function generateAvatar(letter, width = 100, height = 100) {
@@ -314,4 +256,57 @@ function generateAvatar(letter, width = 100, height = 100) {
     ctx.fillText(letter, width / 2, height / 2);
 
     return canvas.toBuffer();
+}
+
+function isAuthenticated(req, res, next) {
+    if (req.session.userId) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
+
+async function registerUser(req, res) {
+    const { username } = req.body;
+    const existingUser = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    if (existingUser) {
+        res.redirect('/register?error=Username%20already%20taken');
+    } else {
+        const user = await db.run(
+            'INSERT INTO users (username, hashedGoogleId, avatar_url, memberSince) VALUES (?, ?, ?, ?)',
+            [username, '', '', new Date().toISOString()]
+        );
+        req.session.userId = user.lastID;
+        req.session.loggedIn = true;
+        res.redirect('/');
+    }
+}
+
+async function loginUser(req, res) {
+    const { username } = req.body;
+    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    if (user) {
+        req.session.userId = user.id;
+        req.session.loggedIn = true;
+        res.redirect('/');
+    } else {
+        res.redirect('/login?error=Invalid%20username');
+    }
+}
+
+function logoutUser(req, res) {
+    req.session.destroy(err => {
+        if (err) {
+            return res.redirect('/error');
+        }
+        res.redirect('/');
+    });
+}
+
+async function findUserByUsername(username) {
+    return await db.get('SELECT * FROM users WHERE username = ?', [username]);
+}
+
+async function findUserById(userId) {
+    return await db.get('SELECT * FROM users WHERE id = ?', [userId]);
 }
