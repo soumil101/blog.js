@@ -4,6 +4,7 @@ const session = require('express-session');
 const sqlite = require('sqlite');
 const sqlite3 = require('sqlite3');
 const { createCanvas } = require('canvas');
+const crypto = require('crypto'); // Add this line to import the crypto module
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -227,15 +228,12 @@ function handleAvatar(req, res) {
     }
 }
 
-function getCurrentUser(req) {
-    return findUserById(req.session.userId);
+async function findUserByUsername(username) {
+    return await db.get('SELECT * FROM users WHERE username = ?', [username]);
 }
 
-async function addPost(title, content, user) {
-    await db.run(
-        'INSERT INTO posts (title, content, username, timestamp, likes) VALUES (?, ?, ?, ?, ?)',
-        [title, content, user.username, new Date().toISOString(), 0]
-    );
+async function findUserById(userId) {
+    return await db.get('SELECT * FROM users WHERE id = ?', [userId]);
 }
 
 function generateAvatar(letter, width = 100, height = 100) {
@@ -268,15 +266,19 @@ function isAuthenticated(req, res, next) {
 
 async function registerUser(req, res) {
     const { username } = req.body;
-    const existingUser = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+
+    // Generate a unique hashedGoogleId
+    const hashedGoogleId = crypto.createHash('sha256').update(username + Date.now().toString()).digest('hex');
+
+    const existingUser = await db.get('SELECT * FROM users WHERE username = ? OR hashedGoogleId = ?', [username, hashedGoogleId]);
     if (existingUser) {
-        res.redirect('/register?error=Username%20already%20taken');
+        res.redirect('/register?error=Username%20or%20hashedGoogleId%20already%20taken');
     } else {
-        const user = await db.run(
+        const result = await db.run(
             'INSERT INTO users (username, hashedGoogleId, avatar_url, memberSince) VALUES (?, ?, ?, ?)',
-            [username, '', '', new Date().toISOString()]
+            [username, hashedGoogleId, '', new Date().toISOString()]
         );
-        req.session.userId = user.lastID;
+        req.session.userId = result.lastID;
         req.session.loggedIn = true;
         res.redirect('/');
     }
@@ -303,10 +305,6 @@ function logoutUser(req, res) {
     });
 }
 
-async function findUserByUsername(username) {
-    return await db.get('SELECT * FROM users WHERE username = ?', [username]);
-}
-
-async function findUserById(userId) {
-    return await db.get('SELECT * FROM users WHERE id = ?', [userId]);
-}
+initializeDB().catch(err => {
+    console.error('Error initializing database:', err);
+});
