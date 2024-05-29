@@ -254,6 +254,7 @@ async function updatePostLikes(req, res) {
     const post = await db.get('SELECT * FROM posts WHERE id = ?', [postId]);
     if (post && user && post.username !== user.username) {
         const likedBy = JSON.parse(post.likedBy || '[]');
+        let liked = false;
         if (likedBy.includes(user.username)) {
             likedBy.splice(likedBy.indexOf(user.username), 1);
             await db.run('UPDATE posts SET likes = likes - 1, likedBy = ? WHERE id = ?', [
@@ -266,12 +267,15 @@ async function updatePostLikes(req, res) {
                 JSON.stringify(likedBy),
                 postId
             ]);
+            liked = true;
         }
-        res.redirect('/');
+        const updatedPost = await db.get('SELECT likes FROM posts WHERE id = ?', [postId]);
+        res.json({ success: true, likes: updatedPost.likes, liked });
     } else {
-        res.redirect('/error');
+        res.json({ success: false });
     }
 }
+
 
 async function renderProfile(req, res) {
     const user = await getCurrentUser(req);
@@ -330,11 +334,6 @@ function isAuthenticated(req, res, next) {
 
 async function registerUser(req, res) {
     const { username } = req.body;
-
-    // // Generate a unique hashedGoogleId
-    // const hashedGoogleId = crypto.createHash('sha256').update(username + Date.now().toString()).digest('hex');
-    // console.log("TEST")
-    // console.log(req.session.hashedGoogleId);
 
     hashedGoogleId = req.session.hashedGoogleId;
 
