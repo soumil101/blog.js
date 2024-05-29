@@ -20,15 +20,11 @@
         </section>
 
         <section class="register-area">
-            <h2>Register</h2>
+            <h2>Login with Google</h2>
             {{#if regError}}
                 <p style="color: red;">{{regError}}</p>
             {{/if}}
-            <form action="/register" method="POST">
-                <label for="register-username">Username:</label>
-                <input type="text" id="register-username" name="username" required>
-                <button type="submit">Register</button>
-            </form>
+            <a href="/auth/google"> Sign in with google </a>
         </section>
     </section>
 </main>

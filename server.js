@@ -1,17 +1,41 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
+const passport = require('passport');
 const session = require('express-session');
 const sqlite = require('sqlite');
 const sqlite3 = require('sqlite3');
 const { createCanvas } = require('canvas');
 const crypto = require('crypto'); // Add this line to import the crypto module
+const dotenv = require('dotenv');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 const app = express();
 const PORT = 3000;
+
+dotenv.config();
+
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+
+// Configure passport
+passport.use(new GoogleStrategy({
+    clientID: CLIENT_ID,
+    clientSecret: CLIENT_SECRET,
+    callbackURL: `http://localhost:${PORT}/auth/google/callback`
+}, (token, tokenSecret, profile, done) => {
+    return done(null, profile);
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+    done(null, obj);
+});
 
 const dbFileName = 'microblog.db';
 let db;
@@ -81,6 +105,38 @@ app.use(express.json());
 // Routes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    async (req, res) => {
+        const googleId = req.user.id;
+        const hashedGoogleId = crypto.createHash('sha256').update(googleId).digest('hex');
+        req.session.hashedGoogleId = hashedGoogleId;
+
+        try {
+            let localUser = await findUserByHashedGoogleId(hashedGoogleId);
+            if (localUser) {
+                req.session.userId = localUser.id;
+                req.session.loggedIn = true;
+                res.redirect('/');
+            } else {
+                res.redirect('/registerUsername');
+
+            }
+        }
+        catch (err) {
+            console.error('Error finding user:', err);
+            res.redirect('/error');
+        }
+});
+
+app.get('/registerUsername', (req, res) => {
+    res.render('registerUsername', { regError: req.query.error });
+});
+
 app.get('/', async (req, res) => {
     const posts = await getPosts();
     const user = await getCurrentUser(req) || {};
@@ -135,12 +191,20 @@ app.post('/register', async (req, res) => {
     await registerUser(req, res);
 });
 
+app.post('/registerUsername', async (req, res) => {
+    await registerUser(req, res);
+});
+
 app.post('/login', async (req, res) => {
     await loginUser(req, res);
 });
 
 app.get('/logout', (req, res) => {
     logoutUser(req, res);
+});
+
+app.get('/googleLogout', (req, res) => {
+    res.render('googleLogout');
 });
 
 app.post('/delete/:id', isAuthenticated, async (req, res) => {
@@ -267,8 +331,12 @@ function isAuthenticated(req, res, next) {
 async function registerUser(req, res) {
     const { username } = req.body;
 
-    // Generate a unique hashedGoogleId
-    const hashedGoogleId = crypto.createHash('sha256').update(username + Date.now().toString()).digest('hex');
+    // // Generate a unique hashedGoogleId
+    // const hashedGoogleId = crypto.createHash('sha256').update(username + Date.now().toString()).digest('hex');
+    // console.log("TEST")
+    // console.log(req.session.hashedGoogleId);
+
+    hashedGoogleId = req.session.hashedGoogleId;
 
     const existingUser = await db.get('SELECT * FROM users WHERE username = ? OR hashedGoogleId = ?', [username, hashedGoogleId]);
     if (existingUser) {
@@ -301,8 +369,17 @@ function logoutUser(req, res) {
         if (err) {
             return res.redirect('/error');
         }
-        res.redirect('/');
+        res.redirect('/googleLogout');
     });
+}
+
+async function findUserByHashedGoogleId(hashedGoogleId) {
+    try {
+        const currUser = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [hashedGoogleId]);
+        return currUser; 
+    } catch (err) {
+        throw err;
+    }
 }
 
 initializeDB().catch(err => {
