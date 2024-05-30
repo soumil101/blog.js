@@ -1,22 +1,20 @@
+{{! Use the main layout }}
+{{!< main }}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logged out</title>
-    {{!-- <script>
-        window.onload = function() {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = 'https://accounts.google.com/logout';
-            iframe.onload = function() {
-                window.location.href = '/logoutCallback';
-            };
-            document.body.appendChild(iframe);
-        };
-    </script> --}}
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
 </head>
 <body>
-    <h1>Logged out.</h1>
+    <main class="logout-container">
+        <div class="logout-content">
+            <h1>Logged out</h1>
+            <a href="/login" class="login-link">Log in again</a>
+        </div>
+    </main>
 </body>
 </html>

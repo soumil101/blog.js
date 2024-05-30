@@ -1,19 +1,27 @@
+{{! Use the main layout }}
+{{!< main }}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Username</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
 </head>
 <body>
-    <h1>Register Username</h1>
-    {{#if error}}
-        <p style="color: red;">{{error}}</p>
-    {{/if}}
-    <form action="/registerUsername" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Register</button>
-    </form>
+    <main class="register-container">
+        <div class="register-content">
+            <h1>Register Username</h1>
+            {{#if error}}
+                <p class="error-message">{{error}}</p>
+            {{/if}}
+            <form action="/registerUsername" method="POST">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <button type="submit" class="register-button">Register</button>
+            </form>
+        </div>
+    </main>
 </body>
 </html>

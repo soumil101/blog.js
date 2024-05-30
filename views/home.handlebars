@@ -27,11 +27,14 @@
     <!-- Recent Posts on the Right -->
     <section class="content-right">
         <h2>Recent Posts</h2>
-        <label for="sortPosts">Sort by:</label>
-        <select id="sortPosts" onchange="sortPosts()">
-            <option value="recency">Recency</option>
-            <option value="likes">Number of Likes</option>
-        </select>
+        <div class="sort-button-container">
+            <label for="sortPosts">Sort by:</label>
+            <select id="sortPosts" onchange="sortPosts()">
+                <option value="recency">Recency</option>
+                <option value="likes">Number of Likes</option>
+            </select>
+        </div>
+
 
         <div id="posts-list">
             {{#if posts.length}}
@@ -46,6 +49,7 @@
         </div>
     </section>
 </section>
+
 
 {{! JavaScript for Emoji Integration and Sorting Posts }}
 <script>
