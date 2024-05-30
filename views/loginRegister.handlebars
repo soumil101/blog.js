@@ -3,28 +3,13 @@
 
 <main>
     <section class="login-register">
-        <section class="login-area">
-            <h2>Login</h2>
-            {{#if loginError}}
-                <p style="color: red;">{{loginError}}</p>
-            {{/if}}
-            <form action="/login" method="POST">
-                <label for="login-username">Username:</label>
-                <input type="text" id="login-username" name="username" required>
-                <button type="submit">Login</button>
-            </form>
-        </section>
-
-        <section>
-            <h2 id="or-space">OR</h2>
-        </section>
-
         <section class="register-area">
             <h2>Login with Google</h2>
             {{#if regError}}
                 <p style="color: red;">{{regError}}</p>
             {{/if}}
-            <a href="/auth/google"> Sign in with google </a>
+            <a href="/auth/google">Sign in with Google</a>
         </section>
     </section>
 </main>
+

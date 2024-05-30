@@ -137,6 +137,41 @@ app.get('/registerUsername', (req, res) => {
     res.render('registerUsername', { regError: req.query.error });
 });
 
+// Route to fetch sorted posts
+app.get('/sortPosts', async (req, res) => {
+    const sortBy = req.query.sortBy || 'recency';
+    const posts = await getPosts(sortBy);
+    const user = await getCurrentUser(req) || {};
+
+    const html = posts.map(post => {
+        return `
+            <div class="post">
+                <div class="post-avatar">
+                    <img src="${post.avatar_url ? post.avatar_url : '/avatar/' + post.username}" alt="${post.username}'s avatar">
+                </div>
+                <div class="post-content preserve-newlines">
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                    <p>Posted by <strong>${post.username}</strong> on <em>${post.timestamp}</em></p>
+                    <div class="post-status-bar">
+                        <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
+                            <i class="fas fa-heart"></i>
+                            <span class="likes-count">${post.likes}</span>
+                        </button>
+                        ${user.username === post.username ? `
+                        <button data-id="${post.id}" class="delete-button" onclick="handleDeleteClick(event)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    res.json({ html });
+});
+
+// Use the updated getPosts function in the home route
 app.get('/', async (req, res) => {
     const posts = await getPosts();
     const user = await getCurrentUser(req) || {};
@@ -237,8 +272,14 @@ async function getCurrentUser(req) {
     return await db.get('SELECT * FROM users WHERE id = ?', [req.session.userId]);
 }
 
-async function getPosts() {
-    return await db.all('SELECT * FROM posts ORDER BY timestamp DESC');
+async function getPosts(sortBy = 'recency') {
+    let query = 'SELECT * FROM posts';
+    if (sortBy === 'likes') {
+        query += ' ORDER BY likes DESC';
+    } else {
+        query += ' ORDER BY timestamp DESC';
+    }
+    return await db.all(query);
 }
 
 async function addPost(title, content, user) {

@@ -27,19 +27,27 @@
     <!-- Recent Posts on the Right -->
     <section class="content-right">
         <h2>Recent Posts</h2>
-        {{#if posts.length}}
-            <ul>
-                {{#each posts}}
-                    {{> post this user=../user}}
-                {{/each}}
-            </ul>
-        {{else}}
-            <p>No posts available.</p>
-        {{/if}}
+        <label for="sortPosts">Sort by:</label>
+        <select id="sortPosts" onchange="sortPosts()">
+            <option value="recency">Recency</option>
+            <option value="likes">Number of Likes</option>
+        </select>
+
+        <div id="posts-list">
+            {{#if posts.length}}
+                <ul>
+                    {{#each posts}}
+                        {{> post this user=../user}}
+                    {{/each}}
+                </ul>
+            {{else}}
+                <p>No posts available.</p>
+            {{/if}}
+        </div>
     </section>
 </section>
 
-{{! JavaScript for Emoji Integration }}
+{{! JavaScript for Emoji Integration and Sorting Posts }}
 <script>
     let allEmojis = [];  // Global list to hold all emojis
 
@@ -98,5 +106,18 @@
         textarea.value = text.slice(0, start) + emoji + text.slice(end);
         textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
         textarea.focus();
+    }
+
+    function sortPosts() {
+        const sortBy = document.getElementById('sortPosts').value;
+        fetch(`/sortPosts?sortBy=${sortBy}`)
+            .then(response => response.json())
+            .then(data => {
+                const postsList = document.getElementById('posts-list');
+                postsList.innerHTML = data.html;
+            })
+            .catch(error => {
+                console.error('Error sorting posts:', error);
+            });
     }
 </script>
