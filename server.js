@@ -8,6 +8,7 @@ const { createCanvas } = require('canvas');
 const crypto = require('crypto'); // Add this line to import the crypto module
 const dotenv = require('dotenv');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { format } = require('date-fns'); // Add this line to import date-fns
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -65,12 +66,7 @@ app.engine(
                 return options.inverse ? options.inverse(this) : false;
             },
             formatTimestamp: timestamp => {
-                const date = new Date(timestamp);
-                const options = {
-                    year: 'numeric', month: '2-digit', day: '2-digit',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                };
-                return date.toLocaleString('en-US', options);
+                return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
             }
         },
     })
@@ -136,6 +132,40 @@ app.get('/auth/google/callback',
 app.get('/registerUsername', (req, res) => {
     res.render('registerUsername', { regError: req.query.error });
 });
+
+app.get('/sortPosts', async (req, res) => {
+    const sortBy = req.query.sortBy || 'recency';
+    const posts = await getPosts(sortBy);
+    const user = await getCurrentUser(req) || {};
+
+    const html = posts.map(post => {
+        return `
+            <div class="post">
+                <div class="post-avatar">
+                    <img src="${post.avatar_url ? post.avatar_url : '/avatar/' + post.username}" alt="${post.username}'s avatar">
+                </div>
+                <div class="post-content preserve-newlines">
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                    <p>Posted by <strong>${post.username}</strong> on <em>${format(new Date(post.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
+                    <div class="post-status-bar">
+                        <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
+                            <i class="fas fa-heart"></i>
+                            <span class="likes-count">${post.likes}</span>
+                        </button>
+                        ${user.username === post.username ? `
+                        <button data-id="${post.id}" class="delete-button" onclick="handleDeleteClick(event)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    res.json({ html });
+});
+
 
 // Route to fetch sorted posts
 app.get('/sortPosts', async (req, res) => {
@@ -210,9 +240,35 @@ app.post('/posts', async (req, res) => {
     }
 });
 
-app.post('/like/:id', async (req, res) => {
-    await updatePostLikes(req, res);
+app.post('/like/:id', isAuthenticated, async (req, res) => {
+    const postId = parseInt(req.params.id);
+    const user = await getCurrentUser(req);
+
+    const post = await db.get('SELECT * FROM posts WHERE id = ?', [postId]);
+    if (post && user && post.username !== user.username) {
+        const likedBy = JSON.parse(post.likedBy || '[]');
+        let liked = false;
+        if (likedBy.includes(user.username)) {
+            likedBy.splice(likedBy.indexOf(user.username), 1);
+            await db.run('UPDATE posts SET likes = likes - 1, likedBy = ? WHERE id = ?', [
+                JSON.stringify(likedBy),
+                postId
+            ]);
+        } else {
+            likedBy.push(user.username);
+            await db.run('UPDATE posts SET likes = likes + 1, likedBy = ? WHERE id = ?', [
+                JSON.stringify(likedBy),
+                postId
+            ]);
+            liked = true;
+        }
+        const updatedPost = await db.get('SELECT likes FROM posts WHERE id = ?', [postId]);
+        res.json({ success: true, likes: updatedPost.likes, liked });
+    } else {
+        res.json({ success: false, message: 'Unauthorized or post not found' });
+    }
 });
+
 
 app.get('/profile', isAuthenticated, async (req, res) => {
     await renderProfile(req, res);
