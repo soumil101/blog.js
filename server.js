@@ -9,6 +9,7 @@ const crypto = require('crypto'); // Add this line to import the crypto module
 const dotenv = require('dotenv');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { format } = require('date-fns'); // Add this line to import date-fns
+const Handlebars = require('handlebars')
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -72,6 +73,10 @@ app.engine(
     })
 );
 
+Handlebars.registerHelper('split', function (context, delimiter) {
+    return context.split(delimiter);
+});
+
 app.set('view engine', 'handlebars');
 app.set('views', './views');
 
@@ -133,7 +138,8 @@ app.get('/registerUsername', (req, res) => {
     res.render('registerUsername', { regError: req.query.error });
 });
 
-// Route to fetch sorted posts
+
+
 app.get('/sortPosts', async (req, res) => {
     const sortBy = req.query.sortBy || 'recency';
     const posts = await getPosts(sortBy);
@@ -147,6 +153,10 @@ app.get('/sortPosts', async (req, res) => {
             </div>
         `).join('');
 
+        const tagsHtml = post.tags.map(tag => `
+            <span class="tag">${tag}</span>
+        `).join('');
+
         return `
             <div class="post">
                 <div class="post-avatar">
@@ -156,6 +166,7 @@ app.get('/sortPosts', async (req, res) => {
                     <h2>${post.title}</h2>
                     <p>${post.content}</p>
                     <p>Posted by <strong>${post.username}</strong> on <em>${format(new Date(post.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
+                    <p>Tags: ${tagsHtml}</p>
                     <div class="post-status-bar">
                         <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
                             <i class="fas fa-heart"></i>
@@ -183,6 +194,7 @@ app.get('/sortPosts', async (req, res) => {
 
     res.json({ html });
 });
+
 
 
 
@@ -384,7 +396,18 @@ async function getPosts(sortBy = 'recency') {
     } else {
         query += ' ORDER BY timestamp DESC';
     }
-    return await db.all(query);
+    const posts = await db.all(query);
+
+    // Fetch comments for each post
+    for (const post of posts) {
+        const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp DESC', [post.id]);
+        post.comments = comments;
+
+        // Split the tags string into an array
+        post.tags = post.tags ? post.tags.split(',') : [];
+    }
+    
+    return posts;
 }
 
 async function addPost(title, content, user) {
@@ -429,15 +452,17 @@ async function renderProfile(req, res) {
     // Fetch the posts for the user
     const userPosts = await db.all('SELECT * FROM posts WHERE username = ? ORDER BY timestamp DESC', [user.username]);
     
-    // Fetch the comments for each post
+    // Fetch the comments for each post and split tags into an array
     for (let post of userPosts) {
         const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp ASC', [post.id]);
         post.comments = comments;
+        post.tags = post.tags ? post.tags.split(',') : [];
     }
     
     // Render the profile page with user, posts, and their respective comments
     res.render('profile', { user, posts: userPosts });
 }
+
 
 function handleAvatar(req, res) {
     const { username } = req.params;

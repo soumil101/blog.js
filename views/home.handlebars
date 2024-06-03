@@ -11,6 +11,8 @@
                 <input type="text" id="title" name="title" required>
                 <label for="content">Content:</label>
                 <textarea id="content" name="content" required></textarea>
+                <label for="tags">Tags (comma separated):</label>
+                <input type="text" id="tags" name="tags">
                 <div class="form-actions">
                     <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
                     <button type="submit" class="post-button">Post</button>
@@ -27,14 +29,19 @@
     <!-- Recent Posts on the Right -->
     <section class="content-right">
         <h2>Recent Posts</h2>
-        <div class="sort-button-container">
-            <label for="sortPosts">Sort by:</label>
-            <select id="sortPosts" onchange="sortPosts()">
-                <option value="recency">Recency</option>
-                <option value="likes">Number of Likes</option>
-            </select>
+        <div class="filter-container">
+            <div class="sort-button-container">
+                <label for="sortPosts">Sort by:</label>
+                <select id="sortPosts" onchange="sortPosts()">
+                    <option value="recency">Recency</option>
+                    <option value="likes">Number of Likes</option>
+                </select>
+            </div>
+            <div class="tag-filter-container">
+                <label for="filterTags">Filter by tags:</label>
+                <input type="text" id="filterTags" placeholder="Enter tags" oninput="filterPostsByTags()">
+            </div>
         </div>
-
 
         <div id="posts-list">
             {{#if posts.length}}
@@ -49,7 +56,6 @@
         </div>
     </section>
 </section>
-
 
 {{! JavaScript for Emoji Integration and Sorting Posts }}
 <script>
@@ -125,4 +131,16 @@
             });
     }
 
+    function filterPostsByTags() {
+        const filterTags = document.getElementById('filterTags').value.split(',').map(tag => tag.trim().toLowerCase());
+        fetch(`/filterPostsByTags?tags=${filterTags.join(',')}`)
+            .then(response => response.json())
+            .then(data => {
+                const postsList = document.getElementById('posts-list');
+                postsList.innerHTML = data.html;
+            })
+            .catch(error => {
+                console.error('Error filtering posts:', error);
+            });
+    }
 </script>
