@@ -133,12 +133,20 @@ app.get('/registerUsername', (req, res) => {
     res.render('registerUsername', { regError: req.query.error });
 });
 
+// Route to fetch sorted posts
 app.get('/sortPosts', async (req, res) => {
     const sortBy = req.query.sortBy || 'recency';
     const posts = await getPosts(sortBy);
     const user = await getCurrentUser(req) || {};
 
     const html = posts.map(post => {
+        const commentsHtml = post.comments.map(comment => `
+            <div class="comment">
+                <p><strong>${comment.username}</strong> commented on <em>${format(new Date(comment.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
+                <p>${comment.content}</p>
+            </div>
+        `).join('');
+
         return `
             <div class="post">
                 <div class="post-avatar">
@@ -158,6 +166,16 @@ app.get('/sortPosts', async (req, res) => {
                             <i class="fas fa-trash-alt"></i>
                         </button>` : ''}
                     </div>
+                    <div class="comments-section">
+                        ${commentsHtml}
+                    </div>
+                    <div class="comment-form">
+                        <form action="/comment" method="post">
+                            <input type="hidden" name="post_id" value="${post.id}">
+                            <textarea name="content" placeholder="Write a comment..." required></textarea>
+                            <button type="submit">Comment</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         `;
@@ -165,6 +183,7 @@ app.get('/sortPosts', async (req, res) => {
 
     res.json({ html });
 });
+
 
 
 // Route to fetch sorted posts
