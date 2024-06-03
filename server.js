@@ -269,6 +269,27 @@ app.post('/like/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+app.get('/', async (req, res) => {
+    const posts = await getPosts();
+    const user = await getCurrentUser(req) || {};
+    res.render('home', { posts, user });
+});
+
+
+app.post('/comment', async (req, res) => {
+    const { post_id, content } = req.body;
+    const user = await getCurrentUser(req);
+    if (user) {
+        await db.run(
+            'INSERT INTO comments (post_id, username, content, timestamp) VALUES (?, ?, ?, ?)',
+            [post_id, user.username, content, new Date().toISOString()]
+        );
+        res.redirect('/');
+    } else {
+        res.redirect('/login');
+    }
+});
+
 
 app.get('/profile', isAuthenticated, async (req, res) => {
     await renderProfile(req, res);
@@ -477,6 +498,25 @@ async function findUserByHashedGoogleId(hashedGoogleId) {
         throw err;
     }
 }
+
+async function getPosts(sortBy = 'recency') {
+    let query = 'SELECT * FROM posts';
+    if (sortBy === 'likes') {
+        query += ' ORDER BY likes DESC';
+    } else {
+        query += ' ORDER BY timestamp DESC';
+    }
+    const posts = await db.all(query);
+
+    // Fetch comments for each post
+    for (const post of posts) {
+        const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp DESC', [post.id]);
+        post.comments = comments;
+    }
+    
+    return posts;
+}
+
 
 initializeDB().catch(err => {
     console.error('Error initializing database:', err);

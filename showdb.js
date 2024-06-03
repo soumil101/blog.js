@@ -14,6 +14,10 @@ async function showDatabaseContents() {
     const posts = await db.all('SELECT * FROM posts');
     console.log('Posts:', posts);
 
+    const comments = await db.all('SELECT * FROM posts');
+    console.log('Comments:', comments);
+
+
     await db.close();
 }
 

@@ -9,6 +9,7 @@ async function initializeDB() {
     // Clear existing tables
     await db.exec(`DROP TABLE IF EXISTS users;`);
     await db.exec(`DROP TABLE IF EXISTS posts;`);
+    await db.exec(`DROP TABLE IF EXISTS comments;`);
 
     // Create tables
     await db.exec(`
@@ -19,7 +20,9 @@ async function initializeDB() {
             avatar_url TEXT,
             memberSince DATETIME NOT NULL
         );
+    `);
 
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -27,7 +30,20 @@ async function initializeDB() {
             username TEXT NOT NULL,
             timestamp DATETIME NOT NULL,
             likes INTEGER NOT NULL,
-            likedBy TEXT
+            likedBy TEXT,
+            FOREIGN KEY (username) REFERENCES users(username)
+        );
+    `);
+
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            content TEXT NOT NULL,
+            timestamp DATETIME NOT NULL,
+            FOREIGN KEY (post_id) REFERENCES posts(id),
+            FOREIGN KEY (username) REFERENCES users(username)
         );
     `);
 
@@ -42,6 +58,11 @@ async function initializeDB() {
         { title: 'The Ultimate Guide to Homemade Pasta', content: 'Learned how to make pasta from scratch.', username: 'FoodieFanatic', timestamp: '2024-01-02 12:00:00', likes: 0, likedBy: '[]' }
     ];
 
+    const comments = [
+        { post_id: 1, username: 'FoodieFanatic', content: 'Wow, that sounds amazing!', timestamp: '2024-01-01 12:00:00' },
+        { post_id: 2, username: 'TravelGuru', content: 'I need to try this recipe!', timestamp: '2024-01-02 14:00:00' }
+    ];
+
     // Insert sample data into the database
     await Promise.all(users.map(user => {
         return db.run(
@@ -54,6 +75,13 @@ async function initializeDB() {
         return db.run(
             'INSERT INTO posts (title, content, username, timestamp, likes, likedBy) VALUES (?, ?, ?, ?, ?, ?)',
             [post.title, post.content, post.username, post.timestamp, post.likes, post.likedBy]
+        );
+    }));
+
+    await Promise.all(comments.map(comment => {
+        return db.run(
+            'INSERT INTO comments (post_id, username, content, timestamp) VALUES (?, ?, ?, ?)',
+            [comment.post_id, comment.username, comment.content, comment.timestamp]
         );
     }));
 

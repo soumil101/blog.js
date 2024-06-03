@@ -21,7 +21,9 @@
         {{#if posts.length}}
             <ul>
                 {{#each posts}}
-                    {{> post this user=../user}}
+                    <li>
+                        {{> post this user=../user}}
+                    </li>
                 {{/each}}
             </ul>
         {{else}}
