@@ -303,7 +303,16 @@ app.post('/comment', async (req, res) => {
             'INSERT INTO comments (post_id, username, content, timestamp) VALUES (?, ?, ?, ?)',
             [post_id, user.username, content, new Date().toISOString()]
         );
-        res.redirect('/');
+
+        // Check the referer header to determine the previous page
+        const referer = req.header('Referer') || '/';
+        
+        // Redirect based on the referer URL
+        if (referer.includes('/profile')) {
+            res.redirect('/profile');
+        } else {
+            res.redirect('/');
+        }
     } else {
         res.redirect('/login');
     }
@@ -416,7 +425,17 @@ async function updatePostLikes(req, res) {
 
 async function renderProfile(req, res) {
     const user = await getCurrentUser(req);
+    
+    // Fetch the posts for the user
     const userPosts = await db.all('SELECT * FROM posts WHERE username = ? ORDER BY timestamp DESC', [user.username]);
+    
+    // Fetch the comments for each post
+    for (let post of userPosts) {
+        const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp ASC', [post.id]);
+        post.comments = comments;
+    }
+    
+    // Render the profile page with user, posts, and their respective comments
     res.render('profile', { user, posts: userPosts });
 }
 
