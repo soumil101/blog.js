@@ -1,7 +1,4 @@
-{{! Use the main layout }}
-{{!< main }}
-
-<div class="profile-big">
+<section class="profile-container">
     <div class="profile-container">
         <div class="profile-avatar">
             {{#if user.avatar_url}}
@@ -16,19 +13,124 @@
         </section>
     </div>
 
-    <section class="user-posts">
-        <h2>Your Posts</h2>
-        {{#if posts.length}}
-            <ul>
-                {{#each posts}}
-                    <li>
-                        {{> post this user=../user}}
-                    </li>
-                {{/each}}
-            </ul>
-        {{else}}
-            <p>You have not posted yet.</p>
-        {{/if}}
-    </section>
-</div>
+    <h3>Your Posts</h3>
+    {{#if posts.length}}
+        <ul>
+            {{#each posts}}
+                <div class="post">
+                    <div class="post-avatar">
+                        {{#if avatar_url}}
+                            <img src="{{avatar_url}}" alt="{{username}}'s avatar">
+                        {{else}}
+                            <img src="/avatar/{{username}}" alt="{{username}}'s avatar">
+                        {{/if}}
+                    </div>
+                    <div class="post-content preserve-newlines">
+                        <h2>{{title}}</h2>
+                        <p>{{content}}</p>
+                        <p>Posted by <strong>{{username}}</strong> on <em>{{formatTimestamp timestamp}}</em></p>
+                        
+                        <p>Tags: 
+                        {{#if tag}}
+                            <span class="tag">{{tag}}</span>
+                        {{else}}
+                            <span class="tag">no tag</span>
+                        {{/if}}
+                    </p>
+                        
+                        <div class="post-status-bar">
+                            <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
+                                <i class="fas fa-heart"></i>
+                                <span class="likes-count">{{likes}}</span>
+                            </button>
+                            {{#ifCond username ../user.username}}
+                                <button data-id="{{id}}" class="delete-button" onclick="handleDeleteClick(event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            {{/ifCond}}
+                        </div>
 
+                        {{!-- Render Comments --}}
+                        <div class="comments-section">
+                            {{#each comments}}
+                                <div class="comment">
+                                    <p><strong>{{username}}</strong> commented on <em>{{formatTimestamp timestamp}}</em></p>
+                                    <p>{{content}}</p>
+                                </div>
+                            {{/each}}
+                        </div>
+
+                        {{!-- Comment form --}}
+                        <div class="comment-form">
+                            <form action="/comment" method="post">
+                                <input type="hidden" name="post_id" value="{{id}}">
+                                <textarea name="content" placeholder="Write a comment..." required></textarea>
+                                <button type="submit">Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {{/each}}
+        </ul>
+    {{else}}
+        <p>No posts available.</p>
+    {{/if}}
+</section>
+
+<script>
+    async function handleLikeClick(event) {
+        const likeButton = event.target.closest('.like-button');
+        const postId = likeButton.getAttribute('data-id');
+
+        try {
+            const response = await fetch(`/like/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    const likesCount = likeButton.querySelector('.likes-count');
+                    likesCount.textContent = result.likes;
+
+                    if (result.liked) {
+                        likeButton.classList.add('liked');
+                    } else {
+                        likeButton.classList.remove('liked');
+                    }
+                } else {
+                    console.error('Failed to like/unlike post:', result.message);
+                }
+            } else {
+                console.error('Failed to like/unlike post');
+            }
+        } catch (error) {
+            console.error('Error liking/unliking post:', error);
+        }
+    }
+
+    async function handleDeleteClick(event) {
+        const buttonElement = event.target.closest('.delete-button');
+        const postId = buttonElement.getAttribute('data-id');
+
+        try {
+            const response = await fetch(`/delete/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to delete post');
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    }
+</script>
