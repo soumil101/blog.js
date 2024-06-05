@@ -95,6 +95,7 @@ main {
     width: 100%;
     margin: 20px auto;
     gap: 20px;
+    flex-wrap: wrap; /* Ensure content wraps on smaller screens */
 }
 
 .content-left, .content-right {
@@ -102,15 +103,9 @@ main {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-}
-
-.content-left {
-    flex: 1;
-    max-width: 350px;
-}
-
-.content-right {
-    flex: 2;
+    flex: 1; /* Allow both columns to grow equally */
+    min-width: 300px; /* Set a minimum width for columns */
+    box-sizing: border-box; /* Ensure padding is included in the element's total width and height */
 }
 
 form {
@@ -254,6 +249,7 @@ form button:hover {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    flex-direction: column; /* Stack items vertically on smaller screens */
 }
 
 .post-avatar img {
@@ -490,6 +486,50 @@ footer {
 
 .register-content .register-button:hover {
     background-color: #357ae8; /* Darker blue for hover effect */
+}
+
+/* Comment Styling */
+.comments-section {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 3px solid #ced4da;
+}
+
+.comment {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.comment p {
+    margin: 0;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.comment strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.comment em {
+    color: #888;
+    font-size: 0.85em;
+}
+
+/* Tag Styling */
+.tag {
+    display: inline-block;
+    background-color: #e0e0e0;
+    color: #555;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    margin-right: 5px;
 }
 
 /* Media Queries for Responsive Design */

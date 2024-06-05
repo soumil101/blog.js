@@ -1,4 +1,3 @@
-{{!-- Partial for a single post --}}
 <div class="post">
     <div class="post-avatar">
         {{#if avatar_url}}
@@ -11,15 +10,15 @@
         <h2>{{title}}</h2>
         <p>{{content}}</p>
         <p>Posted by <strong>{{username}}</strong> on <em>{{formatTimestamp timestamp}}</em></p>
-
-        <p>Tag(s): 
+        
+        <p>Tags: 
         {{#if tag}}
             <span class="tag">{{tag}}</span>
         {{else}}
-            <span class="tag">No Tags</span>
+            <span class="tag">no tag</span>
         {{/if}}
-    </p>
-
+        </p>
+        
         <div class="post-status-bar">
             <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
                 <i class="fas fa-heart"></i>
@@ -33,6 +32,7 @@
         </div>
 
         {{!-- Render Comments --}}
+        {{#if comments.length}}
         <div class="comments-section">
             {{#each comments}}
                 <div class="comment">
@@ -41,6 +41,7 @@
                 </div>
             {{/each}}
         </div>
+        {{/if}}
 
         {{!-- Comment form --}}
         <div class="comment-form">
