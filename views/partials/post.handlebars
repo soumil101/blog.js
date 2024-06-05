@@ -11,13 +11,15 @@
         <h2>{{title}}</h2>
         <p>{{content}}</p>
         <p>Posted by <strong>{{username}}</strong> on <em>{{formatTimestamp timestamp}}</em></p>
-        
+
         <p>Tags: 
-        {{#each (split tags ',')}}
-            <span class="tag">{{this}}</span>
-        {{/each}}
+        {{#if tag}}
+            <span class="tag">{{tag}}</span>
+        {{else}}
+            <span class="tag">no tag</span>
+        {{/if}}
     </p>
-        
+
         <div class="post-status-bar">
             <button data-id="{{id}}" class="like-button" onclick="handleLikeClick(event)">
                 <i class="fas fa-heart"></i>

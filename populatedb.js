@@ -31,7 +31,7 @@ async function initializeDB() {
             timestamp DATETIME NOT NULL,
             likes INTEGER NOT NULL,
             likedBy TEXT,
-            tags TEXT, -- New column for tags
+            tag TEXT, -- Single column for tag
             FOREIGN KEY (username) REFERENCES users(username)
         );
     `);
@@ -63,20 +63,20 @@ async function initializeDB() {
     ];
 
     const posts = [
-        { title: 'Europe!', content: 'Just got back from an incredible trip through Europe.', username: 'TravelGuru', timestamp: '2024-01-01 10:00:00', likes: 0, likedBy: '[]', tags: ['Travel'] },
-        { title: 'The Ultimate Guide to Homemade Pasta', content: 'Learned how to make pasta from scratch.', username: 'FoodieFanatic', timestamp: '2024-01-02 12:00:00', likes: 0, likedBy: '[]', tags: ['Food'] },
-        { title: 'Latest Tech Trends', content: 'Exploring the latest trends in technology.', username: 'TechWhiz', timestamp: '2024-01-03 14:00:00', likes: 0, likedBy: '[]', tags: ['Technology'] },
-        { title: 'Healthy Living Tips', content: 'Some tips for maintaining a healthy lifestyle.', username: 'HealthNut', timestamp: '2024-01-04 16:00:00', likes: 0, likedBy: '[]', tags: ['Health'] },
-        { title: 'Top Sports Events', content: 'A review of the top sports events of the year.', username: 'SportsFan', timestamp: '2024-01-05 18:00:00', likes: 0, likedBy: '[]', tags: ['Sports'] },
-        { title: 'Best Movies of 2024', content: 'A list of the best movies released in 2024.', username: 'EntertainmentBuff', timestamp: '2024-01-06 20:00:00', likes: 0, likedBy: '[]', tags: ['Entertainment'] },
-        { title: 'Online Learning Resources', content: 'The best online resources for learning new skills.', username: 'EducationExpert', timestamp: '2024-01-07 22:00:00', likes: 0, likedBy: '[]', tags: ['Education'] },
-        { title: 'Fashion Trends 2024', content: 'The latest fashion trends for 2024.', username: 'Fashionista', timestamp: '2024-01-08 09:00:00', likes: 0, likedBy: '[]', tags: ['Fashion'] },
-        { title: 'Managing Your Finances', content: 'Tips for managing your finances effectively.', username: 'FinanceGuru', timestamp: '2024-01-09 11:00:00', likes: 0, likedBy: '[]', tags: ['Finance'] },
-        { title: 'Space Exploration', content: 'Recent advancements in space exploration.', username: 'ScienceGeek', timestamp: '2024-01-10 13:00:00', likes: 0, likedBy: '[]', tags: ['Science'] },
-        { title: 'Healthy Eating on a Budget', content: 'How to eat healthy without breaking the bank.', username: 'FoodieFanatic', timestamp: '2024-01-11 15:00:00', likes: 0, likedBy: '[]', tags: ['Food', 'Health', 'Finance'] },
-        { title: 'Tech and Education', content: 'How technology is changing education.', username: 'TechWhiz', timestamp: '2024-01-12 17:00:00', likes: 0, likedBy: '[]', tags: ['Technology', 'Education'] },
-        { title: 'Fashionable Fitness Gear', content: 'The best fitness gear that is also fashionable.', username: 'Fashionista', timestamp: '2024-01-13 19:00:00', likes: 0, likedBy: '[]', tags: ['Fashion', 'Health'] },
-        { title: 'Sports Science Innovations', content: 'Recent innovations in sports science.', username: 'SportsFan', timestamp: '2024-01-14 21:00:00', likes: 0, likedBy: '[]', tags: ['Sports', 'Science'] }
+        { title: 'Europe!', content: 'Just got back from an incredible trip through Europe.', username: 'TravelGuru', timestamp: '2024-01-01 10:00:00', likes: 0, likedBy: '[]', tag: 'Travel' },
+        { title: 'The Ultimate Guide to Homemade Pasta', content: 'Learned how to make pasta from scratch.', username: 'FoodieFanatic', timestamp: '2024-01-02 12:00:00', likes: 0, likedBy: '[]', tag: 'Food' },
+        { title: 'Latest Tech Trends', content: 'Exploring the latest trends in technology.', username: 'TechWhiz', timestamp: '2024-01-03 14:00:00', likes: 0, likedBy: '[]', tag: 'Technology' },
+        { title: 'Healthy Living Tips', content: 'Some tips for maintaining a healthy lifestyle.', username: 'HealthNut', timestamp: '2024-01-04 16:00:00', likes: 0, likedBy: '[]', tag: 'Health' },
+        { title: 'Top Sports Events', content: 'A review of the top sports events of the year.', username: 'SportsFan', timestamp: '2024-01-05 18:00:00', likes: 0, likedBy: '[]', tag: 'Sports' },
+        { title: 'Best Movies of 2024', content: 'A list of the best movies released in 2024.', username: 'EntertainmentBuff', timestamp: '2024-01-06 20:00:00', likes: 0, likedBy: '[]', tag: null },
+        { title: 'Online Learning Resources', content: 'The best online resources for learning new skills.', username: 'EducationExpert', timestamp: '2024-01-07 22:00:00', likes: 0, likedBy: '[]', tag: 'Education' },
+        { title: 'Fashion Trends 2024', content: 'The latest fashion trends for 2024.', username: 'Fashionista', timestamp: '2024-01-08 09:00:00', likes: 0, likedBy: '[]', tag: 'Fashion' },
+        { title: 'Managing Your Finances', content: 'Tips for managing your finances effectively.', username: 'FinanceGuru', timestamp: '2024-01-09 11:00:00', likes: 0, likedBy: '[]', tag: 'Finance' },
+        { title: 'Space Exploration', content: 'Recent advancements in space exploration.', username: 'ScienceGeek', timestamp: '2024-01-10 13:00:00', likes: 0, likedBy: '[]', tag: 'Science' },
+        { title: 'Healthy Eating on a Budget', content: 'How to eat healthy without breaking the bank.', username: 'FoodieFanatic', timestamp: '2024-01-11 15:00:00', likes: 0, likedBy: '[]', tag: null },
+        { title: 'Tech and Education', content: 'How technology is changing education.', username: 'TechWhiz', timestamp: '2024-01-12 17:00:00', likes: 0, likedBy: '[]', tag: 'Technology' },
+        { title: 'Fashionable Fitness Gear', content: 'The best fitness gear that is also fashionable.', username: 'Fashionista', timestamp: '2024-01-13 19:00:00', likes: 0, likedBy: '[]', tag: 'Fashion' },
+        { title: 'Sports Science Innovations', content: 'Recent innovations in sports science.', username: 'SportsFan', timestamp: '2024-01-14 21:00:00', likes: 0, likedBy: '[]', tag: null }
     ];
 
     const comments = [
@@ -97,8 +97,8 @@ async function initializeDB() {
 
     await Promise.all(posts.map(post => {
         return db.run(
-            'INSERT INTO posts (title, content, username, timestamp, likes, likedBy, tags) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [post.title, post.content, post.username, post.timestamp, post.likes, post.likedBy, post.tags.join(',')]
+            'INSERT INTO posts (title, content, username, timestamp, likes, likedBy, tag) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [post.title, post.content, post.username, post.timestamp, post.likes, post.likedBy, post.tag]
         );
     }));
 

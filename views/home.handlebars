@@ -11,8 +11,8 @@
                 <input type="text" id="title" name="title" required>
                 <label for="content">Content:</label>
                 <textarea id="content" name="content" required></textarea>
-                <label for="tags">Tags (comma separated):</label>
-                <input type="text" id="tags" name="tags">
+                <label for="tag">Tag:</label> <!-- Changed from "Tags" to "Tag" -->
+                <input type="text" id="tag" name="tag"> <!-- Changed to single tag input -->
                 <div class="form-actions">
                     <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
                     <button type="submit" class="post-button">Post</button>
@@ -57,9 +57,11 @@
     </section>
 </section>
 
-{{! JavaScript for Emoji Integration and Sorting Posts }}
+{{! JavaScript for Emoji Integration, Sorting, and Tag Filtering }}
+<script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
 <script>
     let allEmojis = [];  // Global list to hold all emojis
+    let allPosts = [];   // Global list to hold all posts for filtering
 
     function toggleEmojiPanel() {
         const container = document.getElementById('emoji-container');
@@ -125,6 +127,7 @@
             .then(data => {
                 const postsList = document.getElementById('posts-list');
                 postsList.innerHTML = data.html;
+                allPosts = data.posts; // Store all posts for filtering
             })
             .catch(error => {
                 console.error('Error sorting posts:', error);
@@ -132,15 +135,63 @@
     }
 
     function filterPostsByTags() {
-        const filterTags = document.getElementById('filterTags').value.split(',').map(tag => tag.trim().toLowerCase());
-        fetch(`/filterPostsByTags?tags=${filterTags.join(',')}`)
-            .then(response => response.json())
-            .then(data => {
-                const postsList = document.getElementById('posts-list');
-                postsList.innerHTML = data.html;
-            })
-            .catch(error => {
-                console.error('Error filtering posts:', error);
-            });
+        const filterTags = document.getElementById('filterTags').value.trim().toLowerCase();
+        const fuse = new Fuse(allPosts, {
+            keys: ['tag'], // Only search by the tag
+            threshold: 0.3 // Adjust the threshold for fuzzy search as needed
+        });
+
+        const result = fuse.search(filterTags);
+        const filteredPosts = result.map(res => res.item);
+
+        const postsList = document.getElementById('posts-list');
+        if (filteredPosts.length > 0) {
+            const filteredHtml = filteredPosts.map(post => `
+                <div class="post">
+                    <div class="post-avatar">
+                        <img src="${post.avatar_url ? post.avatar_url : '/avatar/' + post.username}" alt="${post.username}'s avatar">
+                    </div>
+                    <div class="post-content preserve-newlines">
+                        <h2>${post.title}</h2>
+                        <p>${post.content}</p>
+                        <p>Posted by <strong>${post.username}</strong> on <em>${post.timestamp}</em></p>
+                        <p>Tags: <span class="tag">${post.tag}</span></p>
+                        <div class="post-status-bar">
+                            <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
+                                <i class="fas fa-heart"></i>
+                                <span class="likes-count">${post.likes}</span>
+                            </button>
+                            ${post.username === "${user.username}" ? `
+                            <button data-id="${post.id}" class="delete-button" onclick="handleDeleteClick(event)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>` : ''}
+                        </div>
+                        <div class="comments-section">
+                            ${post.comments.map(comment => `
+                                <div class="comment">
+                                    <p><strong>${comment.username}</strong> commented on <em>${comment.timestamp}</em></p>
+                                    <p>${comment.content}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="comment-form">
+                            <form action="/comment" method="post">
+                                <input type="hidden" name="post_id" value="${post.id}">
+                                <textarea name="content" placeholder="Write a comment..." required></textarea>
+                                <button type="submit">Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            postsList.innerHTML = filteredHtml;
+        } else {
+            postsList.innerHTML = '<p>No posts available.</p>';
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fetch all posts initially for filtering
+        sortPosts();
+    });
 </script>

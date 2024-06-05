@@ -153,9 +153,11 @@ app.get('/sortPosts', async (req, res) => {
             </div>
         `).join('');
 
-        const tagsHtml = post.tags.map(tag => `
-            <span class="tag">${tag}</span>
-        `).join('');
+        const tagHtml = post.tag ? `
+            <span class="tag">${post.tag}</span>
+        ` : `
+            <span class="tag">no tag</span>
+        `;
 
         return `
             <div class="post">
@@ -166,7 +168,7 @@ app.get('/sortPosts', async (req, res) => {
                     <h2>${post.title}</h2>
                     <p>${post.content}</p>
                     <p>Posted by <strong>${post.username}</strong> on <em>${format(new Date(post.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
-                    <p>Tags: ${tagsHtml}</p>
+                    <p>Tags: ${tagHtml}</p>
                     <div class="post-status-bar">
                         <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
                             <i class="fas fa-heart"></i>
@@ -192,8 +194,9 @@ app.get('/sortPosts', async (req, res) => {
         `;
     }).join('');
 
-    res.json({ html });
+    res.json({ html, posts }); // Return the posts data as well
 });
+
 
 
 
@@ -261,10 +264,10 @@ app.get('/post/:id', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, tag } = req.body; // Include tag in destructuring
     const user = await getCurrentUser(req);
     if (user) {
-        await addPost(title, content, user);
+        await addPost(title, content, user, tag); // Pass tag to addPost function
         res.redirect('/');
     } else {
         res.redirect('/login');
@@ -410,10 +413,10 @@ async function getPosts(sortBy = 'recency') {
     return posts;
 }
 
-async function addPost(title, content, user) {
+async function addPost(title, content, user, tag) {
     await db.run(
-        'INSERT INTO posts (title, content, username, timestamp, likes) VALUES (?, ?, ?, ?, ?)',
-        [title, content, user.username, new Date().toISOString(), 0]
+        'INSERT INTO posts (title, content, username, timestamp, likes, tag) VALUES (?, ?, ?, ?, ?, ?)', // Include tag in insert statement
+        [title, content, user.username, new Date().toISOString(), 0, tag || null] // Include tag value or null if empty
     );
 }
 
@@ -575,10 +578,14 @@ async function getPosts(sortBy = 'recency') {
     for (const post of posts) {
         const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp DESC', [post.id]);
         post.comments = comments;
+
+        // Ensure tag is handled
+        post.tag = post.tag || 'no tag';
     }
     
     return posts;
 }
+
 
 
 initializeDB().catch(err => {
