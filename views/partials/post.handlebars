@@ -31,7 +31,6 @@
             {{/ifCond}}
         </div>
 
-        {{!-- Render Comments --}}
         {{#if comments.length}}
         <div class="comments-section">
             {{#each comments}}
@@ -43,7 +42,6 @@
         </div>
         {{/if}}
 
-        {{!-- Comment form --}}
         <div class="comment-form">
             <form action="/comment" method="post">
                 <input type="hidden" name="post_id" value="{{id}}">

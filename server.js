@@ -256,11 +256,10 @@ app.get('/sortPosts', async (req, res) => {
         `;
     }).join('');
 
-    res.json({ html, posts, postsHtml: html }); // Return the posts data as well
+    res.json({ html, posts, postsHtml: html }); 
 });
 
 
-// Use the updated getPosts function in the home route
 app.get('/', async (req, res) => {
     const posts = await getPosts();
     const user = await getCurrentUser(req) || {};
@@ -289,10 +288,10 @@ app.get('/post/:id', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
-    const { title, content, tag } = req.body; // Include tag in destructuring
+    const { title, content, tag } = req.body; 
     const user = await getCurrentUser(req);
     if (user) {
-        await addPost(title, content, user, tag); // Pass tag to addPost function
+        await addPost(title, content, user, tag);
         res.redirect('/');
     } else {
         res.redirect('/login');
@@ -344,10 +343,8 @@ app.post('/comment', async (req, res) => {
             [post_id, user.username, content, new Date().toISOString()]
         );
 
-        // Check the referer header to determine the previous page
         const referer = req.header('Referer') || '/';
         
-        // Redirect based on the referer URL
         if (referer.includes('/profile')) {
             res.redirect('/profile');
         } else {
@@ -431,7 +428,6 @@ async function getPosts(sortBy = 'recency') {
         const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp DESC', [post.id]);
         post.comments = comments;
 
-        // Split the tags string into an array
         post.tags = post.tags ? post.tags.split(',') : [];
     }
     
@@ -440,8 +436,8 @@ async function getPosts(sortBy = 'recency') {
 
 async function addPost(title, content, user, tag) {
     await db.run(
-        'INSERT INTO posts (title, content, username, timestamp, likes, tag) VALUES (?, ?, ?, ?, ?, ?)', // Include tag in insert statement
-        [title, content, user.username, new Date().toISOString(), 0, tag || null] // Include tag value or null if empty
+        'INSERT INTO posts (title, content, username, timestamp, likes, tag) VALUES (?, ?, ?, ?, ?, ?)', 
+        [title, content, user.username, new Date().toISOString(), 0, tag || null]
     );
 }
 
@@ -477,17 +473,14 @@ async function updatePostLikes(req, res) {
 async function renderProfile(req, res) {
     const user = await getCurrentUser(req);
     
-    // Fetch the posts for the user
     const userPosts = await db.all('SELECT * FROM posts WHERE username = ? ORDER BY timestamp DESC', [user.username]);
     
-    // Fetch the comments for each post and split tags into an array
     for (let post of userPosts) {
         const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp ASC', [post.id]);
         post.comments = comments;
         post.tags = post.tags ? post.tags.split(',') : [];
     }
     
-    // Render the profile page with user, posts, and their respective comments
     res.render('profile', { user, posts: userPosts });
 }
 
@@ -599,12 +592,10 @@ async function getPosts(sortBy = 'recency') {
     }
     const posts = await db.all(query);
 
-    // Fetch comments for each post
     for (const post of posts) {
         const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY timestamp DESC', [post.id]);
         post.comments = comments;
 
-        // Ensure tag is handled
         post.tag = post.tag || 'no tag';
     }
     

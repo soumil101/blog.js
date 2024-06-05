@@ -6,7 +6,6 @@ const dbFileName = 'microblog.db';
 async function initializeDB() {
     const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
 
-    // Clear existing tables
     await db.exec(`DROP TABLE IF EXISTS users;`);
     await db.exec(`DROP TABLE IF EXISTS posts;`);
     await db.exec(`DROP TABLE IF EXISTS comments;`);
@@ -48,7 +47,6 @@ async function initializeDB() {
         );
     `);
 
-    // Sample data - Replace these arrays with your own data
     const users = [
         { username: 'TravelGuru', hashedGoogleId: 'hashedGoogleId1', avatar_url: '', memberSince: '2024-01-01 08:00:00' },
         { username: 'FoodieFanatic', hashedGoogleId: 'hashedGoogleId2', avatar_url: '', memberSince: '2024-01-02 09:00:00' },
@@ -87,7 +85,6 @@ async function initializeDB() {
         { post_id: 5, username: 'TechWhiz', content: 'I enjoyed reading this!', timestamp: '2024-01-05 20:00:00' }
     ];
 
-    // Insert sample data into the database
     await Promise.all(users.map(user => {
         return db.run(
             'INSERT INTO users (username, hashedGoogleId, avatar_url, memberSince) VALUES (?, ?, ?, ?)',

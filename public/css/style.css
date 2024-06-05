@@ -95,7 +95,7 @@ main {
     width: 100%;
     margin: 20px auto;
     gap: 20px;
-    flex-wrap: wrap; /* Ensure content wraps on smaller screens */
+    flex-wrap: wrap;
 }
 
 .content-left, .content-right {
@@ -103,9 +103,9 @@ main {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    flex: 1; /* Allow both columns to grow equally */
-    min-width: 300px; /* Set a minimum width for columns */
-    box-sizing: border-box; /* Ensure padding is included in the element's total width and height */
+    flex: 1; 
+    min-width: 300px; 
+    box-sizing: border-box;
 }
 
 form {
@@ -249,7 +249,7 @@ form button:hover {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    flex-direction: column; /* Stack items vertically on smaller screens */
+    flex-direction: column; 
 }
 
 .post-avatar img {
@@ -412,7 +412,7 @@ footer {
 .register-area a {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #4285F4; /* Google blue color */
+    background-color: #4285F4; 
     color: #ffffff;
     border: none;
     border-radius: 5px;
@@ -422,7 +422,7 @@ footer {
 }
 
 .register-area a:hover {
-    background-color: #357ae8; /* Darker blue for hover effect */
+    background-color: #357ae8;
 }
 
 .register-container {
@@ -475,7 +475,7 @@ footer {
 
 .register-content .register-button {
     padding: 10px 20px;
-    background-color: #4285F4; /* Google blue color */
+    background-color: #4285F4; 
     color: #ffffff;
     border: none;
     border-radius: 5px;
@@ -485,7 +485,7 @@ footer {
 }
 
 .register-content .register-button:hover {
-    background-color: #357ae8; /* Darker blue for hover effect */
+    background-color: #357ae8; 
 }
 
 /* Comment Styling */
@@ -532,7 +532,6 @@ footer {
     margin-right: 5px;
 }
 
-/* Media Queries for Responsive Design */
 @media (max-width: 768px) {
     header {
         flex-direction: column;

@@ -3,7 +3,6 @@
 
 <section class="content-container">
     {{#if loggedIn}}
-        <!-- Create Post Form on the Left -->
         <section class="content-left">
             <h2>Create a Post</h2>
             <form action="/posts" method="POST">
@@ -26,7 +25,6 @@
         </section>
     {{/if}}
 
-    <!-- Recent Posts on the Right -->
     <section class="content-right">
         <h2>Recent Posts</h2>
         <div class="filter-container">
@@ -57,11 +55,10 @@
     </section>
 </section>
 
-{{! JavaScript for Emoji Integration, Sorting, and Tag Filtering }}
 <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
 <script>
-    let allEmojis = [];  // Global list to hold all emojis
-    let allPosts = [];   // Global list to hold all posts for filtering
+    let allEmojis = [];  
+    let allPosts = [];   
 
     function toggleEmojiPanel() {
         const container = document.getElementById('emoji-container');
@@ -127,8 +124,8 @@
             .then(data => {
                 const postsList = document.getElementById('posts-list');
                 postsList.innerHTML = data.html;
-                allPosts = data.posts; // Store all posts for filtering
-                postsList.setAttribute('data-html', data.html); // Store the HTML for all posts
+                allPosts = data.posts; 
+                postsList.setAttribute('data-html', data.html); 
             })
             .catch(error => {
                 console.error('Error sorting posts:', error);
@@ -139,13 +136,13 @@
         const filterTags = document.getElementById('filterTags').value.trim().toLowerCase();
         const postsList = document.getElementById('posts-list');
         if (filterTags === '') {
-            postsList.innerHTML = postsList.getAttribute('data-html'); // Reset to all posts if search field is empty
+            postsList.innerHTML = postsList.getAttribute('data-html'); 
             return;
         }
 
         const fuse = new Fuse(allPosts, {
-            keys: ['tag'], // Only search by the tag
-            threshold: 0.3 // Adjust the threshold for fuzzy search as needed
+            keys: ['tag'], 
+            threshold: 0.3 
         });
 
         const result = fuse.search(filterTags);
@@ -197,7 +194,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Fetch all posts initially for filtering
         sortPosts();
     });
 </script>
