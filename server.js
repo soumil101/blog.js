@@ -208,6 +208,19 @@ app.get('/sortPosts', async (req, res) => {
     const user = await getCurrentUser(req) || {};
 
     const html = posts.map(post => {
+        const commentsHtml = post.comments.map(comment => `
+            <div class="comment">
+                <p><strong>${comment.username}</strong> commented on <em>${format(new Date(comment.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
+                <p>${comment.content}</p>
+            </div>
+        `).join('');
+
+        const tagHtml = post.tag ? `
+            <span class="tag">${post.tag}</span>
+        ` : `
+            <span class="tag">no tag</span>
+        `;
+
         return `
             <div class="post">
                 <div class="post-avatar">
@@ -216,7 +229,8 @@ app.get('/sortPosts', async (req, res) => {
                 <div class="post-content preserve-newlines">
                     <h2>${post.title}</h2>
                     <p>${post.content}</p>
-                    <p>Posted by <strong>${post.username}</strong> on <em>${post.timestamp}</em></p>
+                    <p>Posted by <strong>${post.username}</strong> on <em>${format(new Date(post.timestamp), 'yyyy-MM-dd HH:mm:ss')}</em></p>
+                    <p>Tags: ${tagHtml}</p>
                     <div class="post-status-bar">
                         <button data-id="${post.id}" class="like-button" onclick="handleLikeClick(event)">
                             <i class="fas fa-heart"></i>
@@ -227,13 +241,24 @@ app.get('/sortPosts', async (req, res) => {
                             <i class="fas fa-trash-alt"></i>
                         </button>` : ''}
                     </div>
+                    <div class="comments-section">
+                        ${commentsHtml}
+                    </div>
+                    <div class="comment-form">
+                        <form action="/comment" method="post">
+                            <input type="hidden" name="post_id" value="${post.id}">
+                            <textarea name="content" placeholder="Write a comment..." required></textarea>
+                            <button type="submit">Comment</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
 
-    res.json({ html });
+    res.json({ html, posts, postsHtml: html }); // Return the posts data as well
 });
+
 
 // Use the updated getPosts function in the home route
 app.get('/', async (req, res) => {

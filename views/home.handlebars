@@ -11,8 +11,8 @@
                 <input type="text" id="title" name="title" required>
                 <label for="content">Content:</label>
                 <textarea id="content" name="content" required></textarea>
-                <label for="tag">Tag:</label> <!-- Changed from "Tags" to "Tag" -->
-                <input type="text" id="tag" name="tag"> <!-- Changed to single tag input -->
+                <label for="tag">Tag:</label>
+                <input type="text" id="tag" name="tag">
                 <div class="form-actions">
                     <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
                     <button type="submit" class="post-button">Post</button>
@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <div id="posts-list">
+        <div id="posts-list" data-html="{{{postsHtml}}}">
             {{#if posts.length}}
                 <ul>
                     {{#each posts}}
@@ -128,6 +128,7 @@
                 const postsList = document.getElementById('posts-list');
                 postsList.innerHTML = data.html;
                 allPosts = data.posts; // Store all posts for filtering
+                postsList.setAttribute('data-html', data.html); // Store the HTML for all posts
             })
             .catch(error => {
                 console.error('Error sorting posts:', error);
@@ -136,6 +137,12 @@
 
     function filterPostsByTags() {
         const filterTags = document.getElementById('filterTags').value.trim().toLowerCase();
+        const postsList = document.getElementById('posts-list');
+        if (filterTags === '') {
+            postsList.innerHTML = postsList.getAttribute('data-html'); // Reset to all posts if search field is empty
+            return;
+        }
+
         const fuse = new Fuse(allPosts, {
             keys: ['tag'], // Only search by the tag
             threshold: 0.3 // Adjust the threshold for fuzzy search as needed
@@ -144,7 +151,6 @@
         const result = fuse.search(filterTags);
         const filteredPosts = result.map(res => res.item);
 
-        const postsList = document.getElementById('posts-list');
         if (filteredPosts.length > 0) {
             const filteredHtml = filteredPosts.map(post => `
                 <div class="post">
