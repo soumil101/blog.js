@@ -1,2 +1,2 @@
-# microblog
-ecs 162 assignment 3
+# blog.js
+a self-serving blog web app with oauth integration
